@@ -7,12 +7,15 @@
 # `path` - Path to QA database inside the repository
 
 import yaml 
+import os
 
 class Configuration:
 
     token = ''
     repo = ''
     path = ''
+    git = ''
+    localPath = '/tmp'
     configPath = ''
 
     def __init__(self, configPath):
@@ -23,9 +26,15 @@ class Configuration:
                 self.token = c['gh_token']
                 self.repo = c['repo']
                 self.path = c['path']
-                print(self.path)
+                if 'git' in c:
+                    self.git = c['git']
+                else:
+                    self.git = 'git'
+                if 'local_path' in c:
+                    self.localPath = c['local_path']
             except yaml.YAMLError as exc:
                 print(exc)
+                exit(5)
 
         if self.token == '':
             print("Missing GitHub token. Exiting")
@@ -39,6 +48,15 @@ class Configuration:
             print("Path to tests code not specified. Exiting")
             exit(4)
 
+        if len(self.git) > 3 and self.checkGit(self.git) != True:
+            print("git binary specified in options was not found or it's not executable")
+            exit(6)
+        elif self.findGitInPath() != True:
+            print("git binary wasn't found in PATH")
+            exit(7)
+
+        
+
 
     def getToken(self):
         return self.token
@@ -50,3 +68,16 @@ class Configuration:
     
     def getPath(self):
         return self.path
+
+
+    def checkGit(self, gitPath):
+        return os.path.isfile(gitPath) and os.access(gitPath, os.X_OK)
+
+
+    def findGitInPath(self):
+        for path in os.environ["PATH"].split(os.pathsep):
+            git = path + "/git"
+            if self.checkGit(git) == True:
+                return True
+
+        return False

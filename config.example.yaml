@@ -1,3 +1,4 @@
 gh_token: sometoken
 repo: git@github.com:crioto/qa-org.git
 path: example-layout
+git: git
