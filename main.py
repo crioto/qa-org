@@ -6,6 +6,7 @@ import os
 import configuration as c
 import repository as r
 import utils as u
+import builder as b
 
 def main():
   if len(sys.argv) < 2:
@@ -40,6 +41,9 @@ def main():
   if not u.CheckRepoPathExists(config, qaRepo, config.getQAPath()):
     print("Configured directory " + config.getQAPath() + " wasn't found in test repository. Aborting")
     exit(22)
+
+  builder = b.Builder(config.getLocalPath() + '/' + qaRepo.extractRepositoryName() + '/' + config.getQAPath())
+  builder.Run()
 
 if __name__ == '__main__': 
   main() 

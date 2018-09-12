@@ -19,10 +19,10 @@ It is recommended to create a separate user in a system to run this tool. Also, 
 1. Implement configuration ✓
 2. Implement repository read: clone/pull ✓
 3. Implement recursive reader for files in repository
-4. Implement code analyzer to find test tags
-5. Implement wiki page generator
-6. Implement repository push for wiki
-7. Implement reader of issues from repository file
+4. Implement reader of issues from repository files
+5. Implement code analyzer to find test tags
+6. Implement wiki page generator
+7. Implement repository push for wiki
 8. Implement automatic issue creation
 9. Implement issue updater
 10. Implement GitHub webhook for repository update events
