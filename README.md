@@ -17,7 +17,7 @@ It is recommended to create a separate user in a system to run this tool. Also, 
 ### Implementation plan
 
 1. Implement configuration ✓
-2. Implement repository read: clone/pull
+2. Implement repository read: clone/pull ✓
 3. Implement recursive reader for files in repository
 4. Implement code analyzer to find test tags
 5. Implement wiki page generator
