@@ -1,6 +1,7 @@
 gh_token: sometoken
 repo: git@github.com:crioto/qa-org.git
-path: example-layout
+path: example-test-code
 qa_repo: git@github.com:crioto/qa-org.git
+qa_path: example-layout
 local_path: /tmp
 git: git

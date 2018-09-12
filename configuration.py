@@ -16,6 +16,7 @@ class Configuration:
     repo = ''
     qa = ''
     path = ''
+    qaPath = ''
     git = ''
     localPath = '/tmp'
     configPath = ''
@@ -29,6 +30,7 @@ class Configuration:
                 self.repo = c['repo']
                 self.path = c['path']
                 self.qa = c['qa_repo']
+                self.qaPath = c['qa_path']
                 if 'git' in c:
                     self.git = c['git']
                 else:
@@ -62,7 +64,9 @@ class Configuration:
             print("QA Repository wasn't specified. Exiting")
             exit(8)
 
-        
+        if self.qaPath == '':
+            print("QA Issue Layout path wasn't specified. Exiting")
+            exit(9)
 
 
     def getToken(self):
@@ -80,6 +84,10 @@ class Configuration:
     def getPath(self):
         return self.path
 
+
+    def getQAPath(self):
+        return self.qaPath
+        
 
     def getLocalPath(self):
         return self.localPath

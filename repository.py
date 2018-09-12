@@ -9,16 +9,19 @@ from urllib.parse import urlparse
 
 class Repository:
 
+  repository = ''
   repoName = ''
   loc = ''
 
-  def __init__(self, config):
+  def __init__(self, repository, config):
+    self.repository = repository
     self.config = config
     self.repoName = self.extractRepositoryName()
     self.loc = config.getLocalPath()
 
+
   def extractRepositoryName(self):
-    o = urlparse(self.config.getRepo())
+    o = urlparse(self.repository)
     parts = o.path.split('/')
     repo = ''
     for p in parts:
@@ -40,7 +43,7 @@ class Repository:
 
   def Clone(self):
     path = self.loc + '/' + self.extractRepositoryName()
-    p = subprocess.Popen(['git', 'clone', self.config.getRepo(), path])
+    p = subprocess.Popen(['git', 'clone', self.repository, path])
     p.communicate()
     return p.returncode
 
