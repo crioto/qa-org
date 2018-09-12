@@ -3,7 +3,8 @@
 # Configuration is provided to the application in the YAML format
 # stored in a file. The following configuration options are available:
 # `gh_token` - Token to access GitHub API
-# `repo` - Repository in a way it can be red by CLI git client (usually starts with git:// or https://)
+# `repo` - Repository of test code in a way it can be red by CLI git client (usually starts with git:// or https://)
+# `qa_repo` - Repository of issues
 # `path` - Path to QA database inside the repository
 
 import yaml 
@@ -13,6 +14,7 @@ class Configuration:
 
     token = ''
     repo = ''
+    qa = ''
     path = ''
     git = ''
     localPath = '/tmp'
@@ -26,6 +28,7 @@ class Configuration:
                 self.token = c['gh_token']
                 self.repo = c['repo']
                 self.path = c['path']
+                self.qa = c['qa_repo']
                 if 'git' in c:
                     self.git = c['git']
                 else:
@@ -55,6 +58,10 @@ class Configuration:
             print("git binary wasn't found in PATH")
             exit(7)
 
+        if self.qa == '':
+            print("QA Repository wasn't specified. Exiting")
+            exit(8)
+
         
 
 
@@ -65,9 +72,17 @@ class Configuration:
     def getRepo(self):
         return self.repo
 
+
+    def getQA(self):
+        return self.qa
+
     
     def getPath(self):
         return self.path
+
+
+    def getLocalPath(self):
+        return self.localPath
 
 
     def checkGit(self, gitPath):

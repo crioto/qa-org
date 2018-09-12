@@ -13,7 +13,12 @@ def main():
   config = c.Configuration(sys.argv[1])
   
   repo = r.Repository(config)
-  repo.extractRepositoryName()
+  if repo.checkIfExists() == True:
+    print("Updating repository " + repo.extractRepositoryName())
+    repo.Pull()
+  else:
+    print("Cloning repository: " + repo.extractRepositoryName())
+    repo.Clone()
 
 if __name__ == '__main__': 
   main() 
