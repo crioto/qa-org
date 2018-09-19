@@ -6,12 +6,13 @@ class IssueFile:
 
     fullPath = ''
     name = ''
+    strip = ''
 
 
-    def __init__(self, path):
+    def __init__(self, path, strip):
         self.path = path
         self.name = os.path.basename(path)
-
+        self.strip = strip
 
     def GetType(self):
         return 'issue'
@@ -34,12 +35,18 @@ class IssueFile:
 class IssueCategory:
 
     fullPath = ''
+    strip = ''
     name = ''
     subcats = []
     issues = []
+    # From path in form of XXX-YYY-ZZZ this will take ZZZ 
+    relativeHandle = '' 
+    # From path in form of XXX-YYY-ZZZ this will be XXX-YYY-ZZZ 
+    absoluteHandle = ''
 
-    def __init__(self, path):
-        self.path = path
+    def __init__(self, path, strip):
+        self.fullPath = path
+        self.strip = strip
         self.name = os.path.basename(path)
 
 
@@ -59,6 +66,22 @@ class IssueCategory:
             raise ValueError(self.fullPath + "doesn't exists or it's not a file")
 
 
+    def GetSubCategories(self):
+        return self.subcats
+
+
+    def GetIssues(self):
+        return self.issues
+
+
+    def GetAbsoluteHandle(self):
+        return self.absoluteHandle
+
+
+    def GetRelativeHandle(self):
+        return self.relativeHandle
+
+
     def Append(self, obj):
         try: 
             if obj.GetType() == 'category':
@@ -72,6 +95,47 @@ class IssueCategory:
             print("Can't append object: bad type: " + e)
 
 
+    # BuildHandles will split path in two parts - full XXX-YYY-ZZZ form and relative ZZZ
+    def BuildHandles(self):
+        if self.fullPath[0:len(self.strip)] == self.strip:
+            np = self.fullPath[len(self.strip):]
+            if np[:1] == '/':
+                np = np[1:]
+
+            parts = np.split('/')
+            absolute = ''
+            relative = ''
+            i = 0
+            for p in parts:
+                absolute += p
+                i += 1
+                if len(parts) == i:
+                    relative = p
+                else:
+                    absolute += '-'
+
+            print("Relative: " + relative + " Absolute: " + absolute)
+        return 0
+
+    
+    # Scan will analyze contents of the current directory
+    # This method will recursively call Scan() on every sub-object (directory)
+    def Scan(self):
+        d = os.listdir(self.fullPath)
+        print("Scanning " + self.fullPath)
+        for f in d:
+            fp = os.path.join(self.fullPath, f)
+            if os.path.isdir(fp):
+                newDir = IssueCategory(fp, self.strip)
+                newDir.Scan()
+                newDir.BuildHandles()
+                self.Append(newDir)
+            elif os.path.isfile(fp):
+                newIssue = IssueFile(fp, self.strip)
+                self.Append(newIssue)
+        return 0
+
+
 # Builder will build a tree of categories and issues from provided path
 class Builder:
 
@@ -83,7 +147,10 @@ class Builder:
 
 
     def Run(self):
-        self.ProcessDirectory()
+        print("Building issues layout from " + self.path)
+        top = IssueCategory(self.path, self.path)
+        top.Scan()
+        # self.ProcessDirectory()
         # print('Iterating ' + self.path)
         # for subdir, dirs, files in os.walk(self.path):
         #     for file in files:
