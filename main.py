@@ -46,7 +46,12 @@ def main():
   builder = b.Builder(config.getLocalPath() + '/' + qaRepo.extractRepositoryName() + '/' + config.getQAPath())
   builder.Run()
 
-  analyzer = a.Analyzer(config.getLocalPath() + '/' + repo.extractRepositoryName() + '/' + config.getPath(), [])
+  issues = builder.Get()
+  tags = []
+  for issue in issues:
+    tags.append(issue.GetAbsoluteHandle())
+
+  analyzer = a.Analyzer(config.getLocalPath() + '/' + repo.extractRepositoryName() + '/' + config.getPath(), tags)
   analyzer.Run()
 
 if __name__ == '__main__': 
