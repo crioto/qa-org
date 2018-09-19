@@ -7,6 +7,7 @@ import configuration as c
 import repository as r
 import utils as u
 import builder as b
+import analyzer as a
 
 def main():
   if len(sys.argv) < 2:
@@ -44,6 +45,9 @@ def main():
 
   builder = b.Builder(config.getLocalPath() + '/' + qaRepo.extractRepositoryName() + '/' + config.getQAPath())
   builder.Run()
+
+  analyzer = a.Analyzer(config.getLocalPath() + '/' + repo.extractRepositoryName() + '/' + config.getPath(), [])
+  analyzer.Run()
 
 if __name__ == '__main__': 
   main() 

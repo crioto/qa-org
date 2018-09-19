@@ -1,21 +1,45 @@
 # Builder is used to build an issues tructure from a QA repository
 
 import os
+import utils as u
+from itertools import chain
 
 class IssueFile:
 
     fullPath = ''
     name = ''
     strip = ''
-
+    relativeHandle = ''
+    absoluteHandle = ''
 
     def __init__(self, path, strip):
-        self.path = path
+        self.fullPath = path
         self.name = os.path.basename(path)
         self.strip = strip
 
+
     def GetType(self):
         return 'issue'
+
+
+    def BuildHandles(self):
+        try:
+            handles = u.BuildHandles(self.fullPath, self.strip)
+            if len(handles) != 2:
+                raise ValueError("Result isn't full " + str(handles))
+            
+            self.absoluteHandle = handles[0]
+            self.relativeHandle = handles[1]
+        except ValueError as err:
+            print("Failed to build handles: " + str(err))   
+
+    
+    def GetRelativeHandle(self):
+        return self.relativeHandle
+
+
+    def GetAbsoluteHandle(self):
+        return self.absoluteHandle
 
 
     # Returns name of the issue file extracted from full path
@@ -82,6 +106,18 @@ class IssueCategory:
         return self.relativeHandle
 
 
+    def BuildHandles(self):
+        try:
+            handles = u.BuildHandles(self.fullPath, self.strip)
+            if len(handles) != 2:
+                raise ValueError("Result isn't full")
+            
+            self.absoluteHandle = handles[0]
+            self.relativeHandle = handles[1]
+        except ValueError as err:
+            print("Failed to build handles: " + str(err))   
+
+
     def Append(self, obj):
         try: 
             if obj.GetType() == 'category':
@@ -93,29 +129,6 @@ class IssueCategory:
         except Exception as err:
             e = str(err)
             print("Can't append object: bad type: " + e)
-
-
-    # BuildHandles will split path in two parts - full XXX-YYY-ZZZ form and relative ZZZ
-    def BuildHandles(self):
-        if self.fullPath[0:len(self.strip)] == self.strip:
-            np = self.fullPath[len(self.strip):]
-            if np[:1] == '/':
-                np = np[1:]
-
-            parts = np.split('/')
-            absolute = ''
-            relative = ''
-            i = 0
-            for p in parts:
-                absolute += p
-                i += 1
-                if len(parts) == i:
-                    relative = p
-                else:
-                    absolute += '-'
-
-            print("Relative: " + relative + " Absolute: " + absolute)
-        return 0
 
     
     # Scan will analyze contents of the current directory
@@ -132,8 +145,22 @@ class IssueCategory:
                 self.Append(newDir)
             elif os.path.isfile(fp):
                 newIssue = IssueFile(fp, self.strip)
+                newIssue.BuildHandles()
                 self.Append(newIssue)
         return 0
+
+
+    # Some woodoo magic is happening here. TODO: Fix it
+    def Iterate(self):
+        list = []
+        #for s in self.subcats:
+            #print(s.GetAbsoluteHandle())
+            #list.extend(s.Iterate())
+
+        for i in self.issues:
+            list.append(i)
+
+        return list
 
 
 # Builder will build a tree of categories and issues from provided path
@@ -150,24 +177,10 @@ class Builder:
         print("Building issues layout from " + self.path)
         top = IssueCategory(self.path, self.path)
         top.Scan()
-        # self.ProcessDirectory()
-        # print('Iterating ' + self.path)
-        # for subdir, dirs, files in os.walk(self.path):
-        #     for file in files:
-        #         print(os.path.join(subdir, file))
-
-        #     for directory in dirs:
-        #         print(directory)
-
-        #     print("SUB" + subdir)
-    
+        self.tree = top.Iterate()
+        for i in self.tree:
+            print(i.GetAbsoluteHandle())
         return True
 
-    
-    def ProcessDirectory(self):
-        c = os.listdir(self.path)
-        for f in c:
-            if f == "README.md": 
-                continue
-                
-            print(os.path.join(self.path, f))
+    def Get(self):
+        return self.tree
