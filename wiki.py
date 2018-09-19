@@ -7,6 +7,7 @@ class Wiki:
   def __init__(self, wikiURL):
     self.url = wikiURL
 
-
-  def Build(self):
+  # Build method will create a table of data based on all tests, putting information about covered tests
+  def Build(self, all, covered):
+    
     return 0

@@ -8,6 +8,8 @@ import repository as r
 import utils as u
 import builder as b
 import analyzer as a
+import github as g
+
 
 def main():
   if len(sys.argv) < 2:
@@ -43,7 +45,15 @@ def main():
     print("Configured directory " + config.getQAPath() + " wasn't found in test repository. Aborting")
     exit(22)
 
-  builder = b.Builder(config.getLocalPath() + '/' + qaRepo.extractRepositoryName() + '/' + config.getQAPath())
+  # Workflow starts here
+
+  gh = g.InitializeGithub(config.getToken())
+  user = gh.get_user()
+  print(user)
+
+  exit(0)
+
+  builder = b.Builder(os.path.join(config.getLocalPath(), qaRepo.extractRepositoryName(), config.getQAPath()))
   builder.Run()
 
   issues = builder.Get()
@@ -51,8 +61,11 @@ def main():
   for issue in issues:
     tags.append(issue.GetAbsoluteHandle())
 
-  analyzer = a.Analyzer(config.getLocalPath() + '/' + repo.extractRepositoryName() + '/' + config.getPath(), tags)
+  analyzer = a.Analyzer(os.path.join(config.getLocalPath(), repo.extractRepositoryName(), config.getPath()), tags)
   analyzer.Run()
+
+  covered = analyzer.GetMatches()
+
 
 if __name__ == '__main__': 
   main() 
