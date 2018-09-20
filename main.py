@@ -47,9 +47,18 @@ def main():
 
   # Workflow starts here
 
-  gh = g.InitializeGithub(config.getToken())
-  user = gh.get_user()
-  print(user)
+  gh = 0
+
+  try:
+    gh = g.GitHub(config.getPrivateKey(), config.getAppID())
+    gh.Auth()
+  except ValueError as err:
+    print("GitHub auth failed: " + str(err))
+    exit(101)
+
+  # gh = g.InitializeGithub(config.getToken())
+  # user = gh.get_user()
+  # print(user)
 
   exit(0)
 

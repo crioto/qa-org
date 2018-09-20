@@ -20,6 +20,8 @@ class Configuration:
     git = ''
     localPath = '/tmp'
     configPath = ''
+    pk = ''
+    appID = ''
 
     def __init__(self, configPath):
         self.configPath = configPath
@@ -31,6 +33,8 @@ class Configuration:
                 self.path = c['path']
                 self.qa = c['qa_repo']
                 self.qaPath = c['qa_path']
+                self.pk = c['pk']
+                self.appID = c['app_id']
                 if 'git' in c:
                     self.git = c['git']
                 else:
@@ -68,6 +72,13 @@ class Configuration:
             print("QA Issue Layout path wasn't specified. Exiting")
             exit(9)
 
+        if self.pk == '':
+            print("Private Key wasn't specified")
+            exit(10)
+
+        if self.appID == '':
+            print("App ID wasn't specified")
+            exit(11)
 
     def getToken(self):
         return self.token
@@ -91,6 +102,14 @@ class Configuration:
 
     def getLocalPath(self):
         return self.localPath
+
+
+    def getPrivateKey(self):
+        return self.pk
+
+
+    def getAppID(self):
+        return self.appID
 
 
     def checkGit(self, gitPath):

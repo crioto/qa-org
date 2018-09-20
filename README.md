@@ -3,7 +3,7 @@ This is an attempt to automate automatization of testing
 
 Original idea was proposed in optdyn/qa#61
 
-Requires `pyyaml`, `PyGithub`
+Requires `pyyaml`, `PyGithub`, `PyJWT`, `pyopenssl`
 
 Installed `git` CLI tool must be configured with write access to the configured repository
 
