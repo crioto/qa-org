@@ -7,3 +7,8 @@ local_path: /tmp
 git: git
 pk: subutai-qa.2018-09-19.private-key.pem
 app_id: 17778
+users:
+  - crioto
+orgs:
+  - subutai-io
+  - optdyn

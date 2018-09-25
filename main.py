@@ -56,6 +56,14 @@ def main():
     print("GitHub auth failed: " + str(err))
     exit(101)
 
+  for user in config.getUsers():
+    print("Checking installation for user " + user)
+    print(gh.CheckUserInstallation(user))
+
+  for org in config.getOrgs():
+    print("Checking installation for org " + org)
+    print(gh.CheckOrgInstallation(org))
+
   # gh = g.InitializeGithub(config.getToken())
   # user = gh.get_user()
   # print(user)

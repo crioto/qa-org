@@ -6,7 +6,7 @@ import os
 import cryptography 
 import jwt
 import datetime
-from pytz import timezone
+#from pytz import timezone
 import json
 import requests
 
@@ -30,22 +30,32 @@ class AppData:
     if 'id' not in data:
       return
     self.id = data['id']
-    self.NodeID = data['node_id']
-    self.owner = AppOwner(data['owner'])
-    self.name = data['name']
-    self.description = data['description']
-    self.externalURL = data['external_url']
-    self.htmlURL = data['html_url']
-    self.created = data['created_at']
-    self.updated = data['updated']
+    if 'node_id' in data:
+      self.NodeID = data['node_id']
+    if 'owner' in data:
+      self.owner = AppOwner(data['owner'])
+    if 'name' in data:
+      self.name = data['name']
+    if 'description' in data:
+      self.description = data['description']
+    if 'external_url' in data:
+      self.externalURL = data['external_url']
+    if 'html_url' in data:
+      self.htmlURL = data['html_url']
+    if 'created_at' in data:
+      self.created = data['created_at']
+    if 'updated_at' in data:
+      self.updated = data['updated_at']
 
 
 class GitHub:
 
+  url = 'https://api.github.com'
+
   def __init__(self, pk, appID):
     self.pk = pk
     self.appID = appID
-    self.jwtTime = datetime.datetime(1970,1,1)
+    self.jwtTime = datetime.datetime(1970,1,1,0,0,0,0, datetime.timezone.utc)
     self.jwt = ''
     self.pkContent = ''
     self.installationID = 342761
@@ -58,19 +68,49 @@ class GitHub:
       raise err
 
 
+  def buildEP(self, suffix):
+    return self.url + suffix
+
+
   def Auth(self):
     self.checkJWT()
     if len(self.jwt) == 0:
       return
     
-    # curl -i -H "Authorization: Bearer YOUR_JWT" -H "Accept: application/vnd.github.machine-man-preview+json" https://api.github.com/app
     headers = {
       "Accept": "application/vnd.github.machine-man-preview+json",
       "Authorization": "Bearer " + str(self.jwt)
     }
-    r = requests.get("https://api.github.com/app", headers=headers)
-    self.processAppData(json.dumps(r.content.decode('utf-8')))
+    r = requests.get(self.buildEP('/app'), headers=headers)
     
+    self.processAppData(json.loads(r.content.decode('utf-8')))
+
+
+  # CheckUserInstallation will request installation for specified user
+  def CheckUserInstallation(self, handle):
+    return self.checkInstallation('users', handle)
+
+
+  def CheckOrgInstallation(self, handle):
+    return self.checkInstallation('orgs', handle)
+
+
+  def checkInstallation(self, instType, handle):
+    if instType != 'orgs' and instType != 'users':
+      print("No suitable type specified. User assumed")
+      instType = 'users'
+
+    headers = {
+      "Accept": "application/vnd.github.machine-man-preview+json",
+      "Authorization": "Bearer " + str(self.jwt)
+    }
+
+    r = requests.get(self.buildEP('/'+instType+'/'+handle+'/installation'), headers=headers)
+    data = json.loads(r.content.decode('utf-8'))
+    if 'target_id' in data:
+      return data['target_id']
+    return -1
+
 
   def processAppData(self, data):
     self.appData = AppData(data)
@@ -89,12 +129,9 @@ class GitHub:
 
   def createJWT(self):
     print("Creating new JWT")
-    tz = timezone("Asia/Bishkek")
-    ct = datetime.datetime.now(tz)
+    ct = datetime.datetime.now(datetime.timezone.utc)
     ctf = ct + datetime.timedelta(0, 60*9)
     data = {
-      #'iat': int((ct  - datetime.datetime(1970,1,1)).total_seconds()),
-      #'exp': int((ctf  - datetime.datetime(1970,1,1)).total_seconds()),
       'iat': int(ct.timestamp()),
       'exp': int(ctf.timestamp()),
       'iss': self.appID
@@ -108,7 +145,7 @@ class GitHub:
   
 
   def checkJWT(self):
-    delta = datetime.datetime.now() - self.jwtTime
+    delta = datetime.datetime.now(datetime.timezone.utc) - self.jwtTime
     if delta.total_seconds() >= (60*90):
       print("JWT expired")
       self.createJWT()

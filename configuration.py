@@ -22,6 +22,8 @@ class Configuration:
     configPath = ''
     pk = ''
     appID = ''
+    users = []
+    orgs = []
 
     def __init__(self, configPath):
         self.configPath = configPath
@@ -41,6 +43,10 @@ class Configuration:
                     self.git = 'git'
                 if 'local_path' in c:
                     self.localPath = c['local_path']
+                if 'users' in c:
+                    self.users = c['users']
+                if 'orgs' in c:
+                    self.orgs = c['orgs']
             except yaml.YAMLError as exc:
                 print(exc)
                 exit(5)
@@ -80,6 +86,11 @@ class Configuration:
             print("App ID wasn't specified")
             exit(11)
 
+        if len(self.orgs) == 0 and len(self.users) == 0:
+            print("Nor users or orgs was configured.")
+            exit(12)
+
+
     def getToken(self):
         return self.token
 
@@ -110,6 +121,14 @@ class Configuration:
 
     def getAppID(self):
         return self.appID
+
+    
+    def getUsers(self):
+        return self.users
+
+
+    def getOrgs(self):
+        return self.orgs
 
 
     def checkGit(self, gitPath):
