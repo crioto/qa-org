@@ -149,3 +149,19 @@ class GitHub:
     if delta.total_seconds() >= (60*90):
       print("JWT expired")
       self.createJWT()
+
+
+  def GetIssues(self, user, repo):
+    self.checkJWT()
+    if len(self.jwt) == 0:
+      return
+
+    headers = {
+      "Accept": "application/vnd.github.symmetra-preview+json",
+      "Authorization": "Bearer " + str(self.jwt)
+    }
+
+    r = requests.get(self.buildEP('/repos/'+user+'/'+repo+'/issues'), headers=headers)
+    data = json.loads(r.content.decode('utf-8'))
+
+    print(data)

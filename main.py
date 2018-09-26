@@ -64,6 +64,8 @@ def main():
     print("Checking installation for org " + org)
     print(gh.CheckOrgInstallation(org))
 
+  print(gh.GetIssues('crioto', 'qa-org'))
+
   # gh = g.InitializeGithub(config.getToken())
   # user = gh.get_user()
   # print(user)
