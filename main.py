@@ -56,13 +56,37 @@ def main():
     print("GitHub auth failed: " + str(err))
     exit(101)
 
+  ghUser = ''
+  ghOrg = ''
+  ghType = ''
+  installation_id = 0
+
   for user in config.getUsers():
-    print("Checking installation for user " + user)
-    print(gh.CheckUserInstallation(user))
+    installation_id = gh.CheckUserInstallation(user)
+    ghUser = user
+    ghType = 'user'
+    break
 
   for org in config.getOrgs():
-    print("Checking installation for org " + org)
-    print(gh.CheckOrgInstallation(org))
+    installation_id = gh.CheckOrgInstallation(org)
+    ghOrg = org
+    ghType = 'org'
+    break
+
+  ghTitle = ''
+  if ghType == 'user':
+    ghTitle = ghUser
+  else:
+    ghTitle = ghOrg
+
+  if installation_id == 0:
+    print("Couldn't get installation for " + ghType + " " + ghTitle)
+    exit(210)
+
+  installation_id = gh.CheckRepoInstallation('crioto', 'qa-org')
+
+  print("Found installation ID for " + ghTitle + ": " + str(installation_id))
+  gh.AuthInstallation(installation_id)
 
   print(gh.GetIssues('crioto', 'qa-org'))
 

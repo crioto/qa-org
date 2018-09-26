@@ -58,8 +58,10 @@ class GitHub:
     self.jwtTime = datetime.datetime(1970,1,1,0,0,0,0, datetime.timezone.utc)
     self.jwt = ''
     self.pkContent = ''
-    self.installationID = 342761
+    self.installationID = 0
     self.appData = AppData({})
+    self.token = ''
+    self.tokenExp = datetime.datetime(1970,1,1,0,0,0,0, datetime.timezone.utc)
     try:
       if self.readPK() != True:
         print("Failed to read Private Key: " + pk)
@@ -69,6 +71,7 @@ class GitHub:
 
 
   def buildEP(self, suffix):
+    print(self.url + suffix)
     return self.url + suffix
 
 
@@ -86,6 +89,27 @@ class GitHub:
     self.processAppData(json.loads(r.content.decode('utf-8')))
 
 
+  def AuthInstallation(self, id):
+    self.installationID = id
+    self.checkJWT()
+    if len(self.jwt) == 0:
+      raise ValueError("Broken JWT")
+
+    headers = {
+      "Accept": "application/vnd.github.machine-man-preview+json",
+      "Authorization": "Bearer " + str(self.jwt)
+    }
+    r = requests.post(self.buildEP('/app/installations/'+str(self.installationID) + '/access_tokens'), headers=headers)
+    if r.headers['Status'] != '201 Created':
+      raise ValueError('Failed to authenticate installation')
+      
+    tokenData = json.loads(r.content.decode('utf-8'))
+    self.token = tokenData['token']
+    self.tokenExp = datetime.datetime.strptime(tokenData['expires_at'], '%Y-%m-%dT%H:%M:%SZ')
+
+
+
+
   # CheckUserInstallation will request installation for specified user
   def CheckUserInstallation(self, handle):
     return self.checkInstallation('users', handle)
@@ -95,8 +119,12 @@ class GitHub:
     return self.checkInstallation('orgs', handle)
 
 
+  def CheckRepoInstallation(self, uhandle, rhandle):
+    return self.checkInstallation("repos/"+uhandle, rhandle)
+
+
   def checkInstallation(self, instType, handle):
-    if instType != 'orgs' and instType != 'users':
+    if instType != 'orgs' and instType != 'users' and instType[0:5] != 'repos':
       print("No suitable type specified. User assumed")
       instType = 'users'
 
@@ -108,7 +136,10 @@ class GitHub:
     r = requests.get(self.buildEP('/'+instType+'/'+handle+'/installation'), headers=headers)
     data = json.loads(r.content.decode('utf-8'))
     if 'target_id' in data:
-      return data['target_id']
+      if instType[0:5] == 'repos':
+        return data['id']
+      else:
+        return data['target_id']
     return -1
 
 
@@ -136,7 +167,6 @@ class GitHub:
       'exp': int(ctf.timestamp()),
       'iss': self.appID
     }
-    print(data)
     
     js = json.dumps(data)
     self.jwt = jwt.encode(data, self.pkContent, 'RS256').decode('utf-8')
@@ -146,19 +176,15 @@ class GitHub:
 
   def checkJWT(self):
     delta = datetime.datetime.now(datetime.timezone.utc) - self.jwtTime
-    if delta.total_seconds() >= (60*90):
+    if delta.total_seconds() >= (60*90) or self.jwt == '':
       print("JWT expired")
       self.createJWT()
 
 
   def GetIssues(self, user, repo):
-    self.checkJWT()
-    if len(self.jwt) == 0:
-      return
-
     headers = {
       "Accept": "application/vnd.github.symmetra-preview+json",
-      "Authorization": "Bearer " + str(self.jwt)
+      "Authorization": "token " + self.token
     }
 
     r = requests.get(self.buildEP('/repos/'+user+'/'+repo+'/issues'), headers=headers)
