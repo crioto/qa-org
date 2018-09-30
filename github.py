@@ -191,3 +191,18 @@ class GitHub:
     data = json.loads(r.content.decode('utf-8'))
 
     print(data)
+
+  
+  def CreateIssue(self, user, repo, title, text, labels):
+    headers = {
+      "Accept": "application/vnd.github.symmetra-preview+json",
+      "Authorization": "token " + self.token
+    }
+
+    data = {
+      "title": title,
+      "body": text
+    }
+
+    r = requests.post(self.buildEP('/repos/'+user+'/'+repo+'/issues'), data=json.dumps(data), json="", headers=headers)
+    print(r.content)

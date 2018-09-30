@@ -90,6 +90,9 @@ def main():
 
   print(gh.GetIssues('crioto', 'qa-org'))
 
+  gh.CreateIssue('crioto', 'qa-org', 'Test Title', 'Test Text', '')
+  print(gh.GetIssues('crioto', 'qa-org'))
+
   # gh = g.InitializeGithub(config.getToken())
   # user = gh.get_user()
   # print(user)
