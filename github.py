@@ -48,12 +48,16 @@ class AppData:
       self.updated = data['updated_at']
 
 
+# GitHub class is an interface to github.com API
 class GitHub:
 
+  # Base URL
   url = 'https://api.github.com'
 
+
+  # Constructor
   def __init__(self, pk, appID):
-    self.pk = pk
+    self.pk = pk 
     self.appID = appID
     self.jwtTime = datetime.datetime(1970,1,1,0,0,0,0, datetime.timezone.utc)
     self.jwt = ''
@@ -70,11 +74,13 @@ class GitHub:
       raise err
 
 
+  # buildEP will append suffix to base API URL
   def buildEP(self, suffix):
     print(self.url + suffix)
     return self.url + suffix
 
 
+  # Auth will authenticate our application with github API
   def Auth(self):
     self.checkJWT()
     if len(self.jwt) == 0:
@@ -89,6 +95,7 @@ class GitHub:
     self.processAppData(json.loads(r.content.decode('utf-8')))
 
 
+  # AuthInstallation will authenticate our app installation on specific repository
   def AuthInstallation(self, id):
     self.installationID = id
     self.checkJWT()
@@ -108,8 +115,6 @@ class GitHub:
     self.tokenExp = datetime.datetime.strptime(tokenData['expires_at'], '%Y-%m-%dT%H:%M:%SZ')
 
 
-
-
   # CheckUserInstallation will request installation for specified user
   def CheckUserInstallation(self, handle):
     return self.checkInstallation('users', handle)
@@ -123,6 +128,7 @@ class GitHub:
     return self.checkInstallation("repos/"+uhandle, rhandle)
 
 
+  # checkInstallation will return installation ID for specified repository
   def checkInstallation(self, instType, handle):
     if instType != 'orgs' and instType != 'users' and instType[0:5] != 'repos':
       print("No suitable type specified. User assumed")
@@ -143,11 +149,15 @@ class GitHub:
     return -1
 
 
+  # processAppData will create AppData class instance based on data
+  # received during installation authentication
   def processAppData(self, data):
     self.appData = AppData(data)
     print("App info: " + self.appData.name)
 
 
+  # readPK reads private key file for the application received from GitHub
+  # and saved locally
   def readPK(self):
     if not os.path.exists(self.pk):
       raise ValueError("Private Key file doesn't exists")
@@ -158,6 +168,7 @@ class GitHub:
     return False
 
 
+  # createJWT will generate new JWT for 9 minutes
   def createJWT(self):
     print("Creating new JWT")
     ct = datetime.datetime.now(datetime.timezone.utc)
@@ -174,6 +185,8 @@ class GitHub:
     return 0
   
 
+  # checkJWT will regenerate JWT if it's lifetime has passed or JWT wasn't
+  # generated yet
   def checkJWT(self):
     delta = datetime.datetime.now(datetime.timezone.utc) - self.jwtTime
     if delta.total_seconds() >= (60*90) or self.jwt == '':
@@ -181,6 +194,7 @@ class GitHub:
       self.createJWT()
 
 
+  # GetIssues returns a list of issues from repository
   def GetIssues(self, user, repo):
     headers = {
       "Accept": "application/vnd.github.symmetra-preview+json",
@@ -190,9 +204,10 @@ class GitHub:
     r = requests.get(self.buildEP('/repos/'+user+'/'+repo+'/issues'), headers=headers)
     data = json.loads(r.content.decode('utf-8'))
 
-    print(data)
+    return data
 
   
+  # CreateIssue will submit a new issue on behalf of GitHub app
   def CreateIssue(self, user, repo, title, text, labels):
     headers = {
       "Accept": "application/vnd.github.symmetra-preview+json",
